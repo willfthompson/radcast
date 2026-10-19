@@ -1,0 +1,38 @@
+services:
+  radcast:
+    image: ghcr.io/willfthompson/radcast:latest
+    restart: unless-stopped
+    env_file: .env
+    user: "${PUID:-1000}:${PGID:-1000}"
+    volumes:
+      - ./config:/config:ro          # shows.yml and optional artwork.jpg
+      - ./recordings:/data/recordings
+    ports:
+      # Only reachable from this machine. Tailscale Serve or Caddy put HTTPS in front.
+      # For plain LAN access without either, change to "5000:5000".
+      - "127.0.0.1:5000:5000"
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+  # Optional: public HTTPS on a VPS with your own hostname. Set DOMAIN in .env and start
+  # with:  docker compose --profile caddy up -d
+  caddy:
+    image: caddy:2-alpine
+    profiles: [caddy]
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:-}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - radcast
+
+volumes:
+  caddy_data:
+  caddy_config:

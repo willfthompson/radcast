@@ -1,0 +1,26 @@
+# systemd unit for running Radcast without Docker.
+#
+#   sudo apt install ffmpeg pipx
+#   pipx install git+https://github.com/willfthompson/radcast
+#   sudo mkdir -p /etc/radcast /var/lib/radcast && sudo chown $USER /var/lib/radcast
+#   cp .env.example /etc/radcast/env   (edit it; set RECORDINGS_DIR=/var/lib/radcast
+#                                       SHOWS_FILE=/etc/radcast/shows.yml ARTWORK=/etc/radcast/artwork.jpg)
+#   cp shows.example.yml /etc/radcast/shows.yml   (edit it)
+#   sudo cp contrib/radcast.service /etc/systemd/system/ && sudo systemctl enable --now radcast
+#
+# Replace "pi" below with the user that ran pipx install.
+
+[Unit]
+Description=Radcast: record a live stream on a timer and serve it as a podcast
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=pi
+EnvironmentFile=/etc/radcast/env
+ExecStart=/home/pi/.local/bin/radcast serve
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

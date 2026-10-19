@@ -1,0 +1,15 @@
+.git
+.env
+config
+recordings
+tests
+.github
+contrib
+__pycache__
+*.pyc
+.pytest_cache
+*.egg-info
+.venv
+venv
+.idea
+.DS_Store

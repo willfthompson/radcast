@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ settings.feed_title }}</title>
+<style>
+  :root { color-scheme: light dark; --fg: #1d1d1f; --muted: #6e6e73; --bg: #fff; --card: #f5f5f7; --ok: #1a7f37; --warn: #9a6700; --err: #cf222e; --line: #e5e5ea; }
+  @media (prefers-color-scheme: dark) { :root { --fg: #f5f5f7; --muted: #a1a1a6; --bg: #111; --card: #1c1c1e; --line: #2c2c2e; --ok: #3fb950; --warn: #d29922; --err: #ff7b72; } }
+  body { font: 15px/1.5 -apple-system, system-ui, sans-serif; color: var(--fg); background: var(--bg); max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 24px; margin: 0 0 4px; } h2 { font-size: 16px; margin: 0 0 12px; }
+  .sub { color: var(--muted); margin: 0 0 24px; }
+  .card { background: var(--card); border-radius: 12px; padding: 16px; margin: 0 0 16px; }
+  .ok { color: var(--ok); } .warn { color: var(--warn); } .err { color: var(--err); }
+  .muted { color: var(--muted); font-size: 13px; }
+  table { width: 100%; border-collapse: collapse; } td, th { text-align: left; padding: 6px 0; vertical-align: top; border-top: 1px solid var(--line); }
+  tr:first-child td, tr:first-child th { border-top: 0; }
+  th { font-weight: 600; } td.right { text-align: right; white-space: nowrap; }
+  code { font: 13px ui-monospace, Menlo, monospace; word-break: break-all; }
+  ul { margin: 0; padding-left: 20px; }
+  button { font: inherit; padding: 6px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
+  .pill { display: inline-block; padding: 0 8px; border-radius: 999px; font-size: 12px; background: var(--err); color: #fff; }
+</style>
+</head>
+<body>
+<h1>{{ settings.feed_title }}</h1>
+<p class="sub">{{ now.strftime("%A %d %B %Y, %H:%M") }} ({{ settings.tz_name }}) &middot; radcast {{ version }}</p>
+
+{% if problems %}
+<div class="card">
+  <h2 class="err">Problems in your shows file</h2>
+  <ul>{% for p in problems %}<li>{{ p }}</li>{% endfor %}</ul>
+  <p class="muted">These shows are skipped until fixed. Edit the file and restart.</p>
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>Stream</h2>
+  <table>
+    <tr><th>URL</th><td><code>{{ settings.stream_url }}</code></td></tr>
+    <tr><th>Status</th><td>
+      {% if stream_info %}<span class="ok">OK</span> &middot; {{ stream_info.describe() }}
+      {% elif stream_error %}<span class="err">Unreachable</span> &middot; {{ stream_error }}
+      {% else %}<span class="muted">checking&hellip;</span>{% endif %}
+      {% if stream_checked %}<div class="muted">checked {{ stream_checked.strftime("%H:%M") }}</div>{% endif %}
+    </td></tr>
+    <tr><th>Audio</th><td>{{ settings.audio_mode }}{% if settings.audio_mode != "copy" %} (transcodes at {{ settings.transcode_bitrate }} when needed){% endif %}</td></tr>
+    {% if last_failure %}<tr><th>Last failure</th><td class="err">{{ last_failure }}</td></tr>{% endif %}
+  </table>
+  <p style="margin:12px 0 0">
+    <form method="post" action="/test" style="display:inline">
+      <button type="submit" {% if tests %}disabled{% endif %}>{% if tests %}Test recording in progress&hellip;{% else %}Record a 60-second test{% endif %}</button>
+    </form>
+    <span class="muted">Adds a short episode to the combined feed so you can check playback on your phone.</span>
+  </p>
+</div>
+
+<div class="card">
+  <h2>Timers</h2>
+  {% if timers %}
+  <table>
+    {% for t in timers %}
+    <tr>
+      <td><strong>{{ t.show.name }}</strong><div class="muted">{{ t.rule }}{% if t.stream %} &middot; own stream{% endif %}</div></td>
+      <td class="right">
+        {% if t.recording %}<span class="pill">REC</span> until {{ fmt_local(t.next.end) }}
+        {% elif t.next %}{{ fmt_local(t.next.start) }}
+        {% else %}<span class="muted">no upcoming airing</span>{% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<p class="muted">No shows configured.</p>{% endif %}
+</div>
+
+<div class="card">
+  <h2>Podcast feeds</h2>
+  <table>
+    {% for name, url in feeds %}<tr><th>{{ name }}</th><td><code>{{ url }}</code></td></tr>{% endfor %}
+  </table>
+  <p class="muted">Paste into your podcast app under "add by URL". {% if settings.auth_enabled %}Credentials are included in the URL.{% else %}No password is set.{% endif %}
+  {% if not artwork_url %}No artwork: put a square JPEG at the ARTWORK path to give the feed a cover.{% endif %}</p>
+</div>
+
+<div class="card">
+  <h2>Recent episodes</h2>
+  {% if episodes %}
+  <table>
+    {% for ep in episodes %}
+    <tr>
+      <td>{{ ep.title }}<div class="muted">{{ ep.show }}</div></td>
+      <td class="right muted">{{ fmt_local(ep.started) }}<br>{{ ep.duration_seconds // 60 }} min &middot; {{ (ep.file_size / 1048576) | round | int }} MB</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<p class="muted">Nothing recorded yet.</p>{% endif %}
+</div>
+
+<p class="muted"><a href="/logs">Logs</a> &middot; <a href="/health">Health</a></p>
+</body>
+</html>

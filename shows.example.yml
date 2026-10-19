@@ -1,0 +1,28 @@
+# Timers, like a VCR. Times are in the TZ from your .env. Copy to config/shows.yml.
+#
+# Each show needs: name, days (or on), start, end.
+#   days:   mon-fri | sat,sun | daily | weekdays | weekends | [mon, wed, fri]
+#   on:     a single date (2026-11-03) for a one-off instead of days
+#   start:  "HH:MM"   end: "HH:MM"   (end earlier than start = runs past midnight)
+# Optional per show:
+#   stream:      a different stream URL than STREAM_URL
+#   title:       episode title template. Default: "{name}, {date:%A %-d %B %Y}"
+#   description: shown as the description of this show's own feed
+
+shows:
+  - name: Breakfast Show
+    days: mon-fri
+    start: "07:00"
+    end: "10:00"
+
+  - name: The Late Session
+    days: [fri, sat]
+    start: "23:00"
+    end: "01:00"
+    description: Two hours of late night music, recorded off air.
+
+  # - name: Election Night Special
+  #   on: 2026-11-03
+  #   start: "21:00"
+  #   end: "02:00"
+  #   stream: https://other-station.example/live.m3u8

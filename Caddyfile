@@ -1,0 +1,5 @@
+# Caddy fetches and renews a Let's Encrypt certificate for DOMAIN by itself.
+{$DOMAIN} {
+	reverse_proxy radcast:5000
+	encode gzip
+}
