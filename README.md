@@ -162,7 +162,9 @@ and which path will be used. `AUDIO_MODE=copy` copies any AAC regardless, and
 `AUDIO_MODE=transcode` always re-encodes.
 
 **Timing.** Each timer gets one job at `start - START_BUFFER`. It records until
-`end + END_BUFFER`, so a show that runs a minute over is still complete. If Radcast
+`end + END_BUFFER`, so a show that runs a minute over is still complete. HLS streams
+are joined 10 to 20 seconds behind the live edge, so the file starts a little early and
+that much of the end buffer is spent catching up; the default 60 seconds covers it. If Radcast
 starts up, or restarts, while a show is on air, it records the rest of it. If a capture
 fails early on (stream down, network blip), it retries, and a show that failed still has
 its slot rebooked by an hourly replan while it is on air.

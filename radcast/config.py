@@ -242,6 +242,9 @@ def parse_time(value) -> time:
 def _parse_show(raw: dict, defaults: dict) -> Show:
     if not isinstance(raw, dict):
         raise ValueError("each show must be a mapping with name, days (or on), start and end")
+    # YAML 1.1 (PyYAML) reads a bare `on` key as the boolean True, so `on: 2026-11-03`
+    # arrives as {True: date(...)}. Put the key back.
+    raw = {("on" if k is True else k): v for k, v in raw.items()}
     name = str(raw.get("name", "")).strip()
     if not name:
         raise ValueError("name is required")

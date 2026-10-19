@@ -115,3 +115,10 @@ def test_load_shows_from_json_env(env):
     assert not problems and shows[0].name == "Env Show"
     env["SHOWS_JSON"] = "{not json"
     assert "SHOWS_JSON" in load_shows(load_settings(env))[1][0]
+
+
+def test_one_off_on_key_survives_yaml_boolean_parsing(settings):
+    # PyYAML turns the bare key `on` into True; the example file and README both use it.
+    settings.shows_file.write_text("shows:\n  - name: Special\n    on: 2026-11-03\n    start: '21:00'\n    end: '02:00'\n")
+    shows, problems = load_shows(settings)
+    assert not problems and shows[0].on == date(2026, 11, 3) and shows[0].days is None
